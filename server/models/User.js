@@ -7,7 +7,13 @@ const userSchema = mongoose.Schema(
     password: { type: String, required: true },
     location: { type: String, required: true },
     answer: { type: String, required: true },
-    phone: { type: Number, required: true },
+    phone: { type: String, required: true },
+    image: {
+      type: String,
+      required: true,
+      default:
+        "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
+    },
     role: { type: Number, default: 0 },
   },
   { timestamps: true }

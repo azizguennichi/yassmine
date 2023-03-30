@@ -6,30 +6,30 @@ const { hashpassword, comparePassword } = require("../helpers/authHelper");
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, location, answer, phone } = req.body;
+    const { password, email } = req.body;
     // validation
-    if (!name) {
-      return res.send({ error: "Name is Required" });
-    }
-    if (!email) {
-      return res.send({ error: "email is Required" });
-    }
-    if (!password) {
-      return res.send({ error: "password is Required" });
-    }
-    if (!location) {
-      return res.send({ error: "location is Required" });
-    }
-    if (!answer) {
-      return res.send({ error: "answer is Required" });
-    }
-    if (!phone) {
-      return res.send({ error: "phone is Required" });
-    }
-    // check user
+    // if (!name) {
+    //   return res.send({ error: "Name is Required" });
+    // }
+    // if (!email) {
+    //   return res.send({ error: "email is Required" });
+    // }
+    // if (!password) {
+    //   return res.send({ error: "password is Required" });
+    // }
+    // if (!location) {
+    //   return res.send({ error: "location is Required" });
+    // }
+    // if (!answer) {
+    //   return res.send({ error: "answer is Required" });
+    // }
+    // if (!phone) {
+    //   return res.send({ error: "phone is Required" });
+    // }
+
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
-      res.status(200).send({
+      return res.status(403).send({
         success: false,
         message: "Already Register please login",
       });
@@ -37,12 +37,12 @@ exports.register = async (req, res) => {
     const hashedPassword = await hashpassword(password);
 
     const user = await new UserModel({
-      name,
-      email,
+      name: req.body.name,
+      email: req.body.email,
       password: hashedPassword,
-      location,
-      answer,
-      phone,
+      location: req.body.location || "Not Added",
+      answer: req.body.answer,
+      phone: req.body.phone || "Not Added",
     }).save();
     res.status(201).send({
       success: true,
@@ -92,14 +92,15 @@ exports.Login = async (req, res) => {
     res.send({
       success: true,
       message: "Login successfuly",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        location: user.location,
-        phone: user.phone,
-        role: user.role,
-      },
+
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      location: user.location,
+      phone: user.phone,
+      image: user.image,
+      role: user.role,
+
       token,
     });
   } catch (error) {
@@ -110,4 +111,87 @@ exports.Login = async (req, res) => {
       error,
     });
   }
+};
+
+// update Password
+
+// exports.updatePassword = async (req, res) => {
+//   try {
+//     const user = await UserModel.findByIdAndUpdate({ _id: req.body._id });
+//     !user && res.status(401).json('you are not the same person')
+//     const hashedPassword = await bcrypt.hash(user.password,10)
+//     const oroginalPassword = await hashedPassword.toString(bcrypt)
+//   } catch (error) {}
+// };
+
+// update user
+
+exports.updateUser = async (req, res) => {
+  const user = await UserModel.findById(req.body._id);
+
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    user.location = req.body.location || user.location;
+    user.phone = req.body.phone || user.phone;
+    user.name = req.body.name || user.name;
+    user.image = req.body.image || user.image;
+    const updateUser = await user.save();
+    res.send({
+      _id: updateUser._id,
+      name: updateUser.name,
+      email: updateUser.email,
+      location: updateUser.location,
+      phone: updateUser.phone,
+      image: updateUser.image,
+    });
+  } else {
+    res.status(401).send({ message: "User Not found" });
+  }
+};
+
+// delete account user
+
+exports.deleteAccount = async (req, res) => {
+  try {
+    await UserModel.findByIdAndDelete(req.params.id);
+    res.json("User is deleted");
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
+// update Image
+exports.updateImage = async (req, res) => {
+  if (req.body.userId === req.params.id) {
+    try {
+      await UserModel.findByIdAndUpdate(req.params.id, {
+        $set: req.body,
+        new: true,
+      });
+      res.status(200).json("image updated");
+    } catch (error) {
+      return res.status(500).json(error);
+    }
+  } else {
+    return res.status(400).json("you can update only your account");
+  }
+};
+
+// count Users
+
+exports.countUsers = async (req, res) => {
+  try {
+    const countAllUsers = await UserModel.countDocuments();
+    res.status(201).json({ count: countAllUsers });
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+};
+
+// get Users
+
+exports.getUsers = async (req, res) => {
+  const users = await UserModel.find();
+  res.send(users);
 };
