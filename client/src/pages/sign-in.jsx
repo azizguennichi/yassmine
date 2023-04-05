@@ -15,6 +15,7 @@ import { SimpleFooter } from "@/widgets/layout";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { login } from "@/redux/apiCalls";
+import axios from "axios";
 
 export function SignIn() {
   const user = useSelector((state)=>state.user.userInfo)
@@ -23,7 +24,13 @@ export function SignIn() {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch()
   const {isFetching,error} = useSelector((state)=>state.user)
+  const [auth,setAuth] = useState(null)
 
+  const googleAuth = ()=>{
+     window.open('http://localhost:5000/auth/google/callback',"_self")
+  }
+
+  
 
   const loginHandler = async (e)=>{
     e.preventDefault()
@@ -39,6 +46,7 @@ export function SignIn() {
  
   useEffect(()=>{
     user && navigate('/home')
+    
   },[user,navigate])
   return (
     <>
@@ -81,6 +89,7 @@ export function SignIn() {
                    position:'top-center',
                   style:{background:"red",color:"white"}
             })} */}
+            <Button onClick={googleAuth}>Sign in with Google</Button>
             <Typography variant="small" className="mt-6 flex justify-center">
               Don't have an account?
               <Link to="/sign-up">
